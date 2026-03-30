@@ -1,0 +1,64 @@
+name: Claude API Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  claude-test:
+    runs-on: ubuntu-latest
+
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_MODEL: claude-sonnet-4-5
+
+    steps:
+      - name: Check secret exists
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY is not set"
+            exit 1
+          fi
+          echo "Secret exists"
+
+      - name: Call Claude API
+        run: |
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "content-type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -d "{
+              \"model\": \"$ANTHROPIC_MODEL\",
+              \"max_tokens\": 200,
+              \"messages\": [
+                {
+                  \"role\": \"user\",
+                  \"content\": \"fun sport nexus 向けのGitHub自動化テストです。接続確認として『Claude接続成功』とだけ日本語で返してください。\"
+                }
+              ]
+            }")
+
+          echo "$RESPONSE" > response.json
+          cat response.json
+
+      - name: Show extracted text
+        run: |
+          python - <<'PY'
+          import json
+
+          with open("response.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          if "error" in data:
+              print("API ERROR:")
+              print(json.dumps(data, ensure_ascii=False, indent=2))
+              raise SystemExit(1)
+
+          text_parts = []
+          for item in data.get("content", []):
+              if item.get("type") == "text":
+                  text_parts.append(item.get("text", ""))
+
+          result = "\n".join(text_parts).strip()
+          print("----- Claude response -----")
+          print(result if result else "No text returned")
+          PY
