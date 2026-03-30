@@ -1,0 +1,44 @@
+name: Task
+description: fun sport nexus の通常タスク
+title: "[Task] "
+labels: ["ai-generated"]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: タスク概要
+      placeholder: 例）名古屋大学 会場導線図の初稿作成
+    validations:
+      required: true
+
+  - type: dropdown
+    id: event
+    attributes:
+      label: 対象イベント
+      options:
+        - 2026-10 名古屋大学
+        - 2026-12 オリセン
+        - 共通
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 種別
+      options:
+        - planning
+        - venue
+        - speaker
+        - pr
+        - ops
+        - survey
+        - admin
+
+  - type: textarea
+    id: action_items
+    attributes:
+      label: 実施内容
+
+  - type: input
+    id: due_date
+    attributes:
+      label: 期限
